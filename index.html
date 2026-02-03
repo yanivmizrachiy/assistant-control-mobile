@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>עוזר אוטומציה — שליטה בפרימיום</title>
+  <meta name="theme-color" content="#0B5FFF" />
+  <meta name="description" content="אפליקציה לנייד להפעלת אוטומציות GitHub/Termux בצורה פשוטה עם כפתורים והסברים." />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./assets/icon-192.png" />
+  <style>
+    :root{
+      --bg:#050B1A; --card:rgba(255,255,255,.08); --card2:rgba(255,255,255,.12);
+      --stroke:rgba(255,255,255,.14); --txt:#EAF0FF; --mut:#B9C6FF;
+      --blue:#0B5FFF; --cyan:#39C3FF; --ok:#2EE59D; --warn:#FFD166;
+      --shadow:0 18px 60px rgba(0,0,0,.55);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; color:var(--txt); font-family: system-ui, -apple-system, "Heebo", "Assistant", Arial;
+      background:
+        radial-gradient(900px 500px at 20% 10%, rgba(11,95,255,.35), transparent 60%),
+        radial-gradient(900px 500px at 80% 0%, rgba(57,195,255,.22), transparent 55%),
+        radial-gradient(900px 700px at 60% 90%, rgba(46,229,157,.10), transparent 55%),
+        linear-gradient(180deg, #050B1A 0%, #050B1A 55%, #040716 100%);
+      min-height:100vh;
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(5,11,26,.92), rgba(5,11,26,.65));
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .wrap{max-width:980px; margin:0 auto; padding:18px 16px;}
+    .hero{display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;}
+    .title{
+      display:flex; flex-direction:column; gap:6px;
+    }
+    h1{font-size:22px; margin:0; letter-spacing:.2px}
+    .sub{color:var(--mut); font-size:13px; line-height:1.5}
+    .pillrow{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+    .pill{
+      padding:8px 10px; border-radius:999px; font-size:12px;
+      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+    }
+    .pill b{color:#fff}
+    .grid{
+      display:grid; grid-template-columns: 1fr; gap:12px; padding:18px 16px 30px;
+      max-width:980px; margin:0 auto;
+    }
+    @media(min-width:860px){ .grid{grid-template-columns: 1.15fr .85fr;} }
+    .card{
+      border-radius:var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      transform: translateY(0);
+      animation: floatIn .55s ease both;
+    }
+    @keyframes floatIn{
+      from{opacity:0; transform: translateY(14px)}
+      to{opacity:1; transform: translateY(0)}
+    }
+    .cardHead{
+      padding:14px 14px 10px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    .cardHead h2{margin:0; font-size:16px}
+    .badge{
+      font-size:12px; padding:7px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(11,95,255,.18);
+      color:#D8E6FF;
+    }
+    .cardBody{padding:14px}
+    .hint{color:var(--mut); font-size:13px; line-height:1.6; margin:0 0 12px}
+    .actions{display:grid; gap:10px}
+    .btn{
+      width:100%;
+      border:1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      color:var(--txt);
+      border-radius:18px;
+      padding:12px 12px;
+      text-align:right;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .2s ease, background .2s ease;
+      box-shadow: 0 10px 26px rgba(0,0,0,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .btn:active{ transform: scale(.99) }
+    .btn:hover{ border-color: rgba(57,195,255,.35); }
+    .btnTitle{display:flex; align-items:center; justify-content:space-between; gap:10px; font-weight:800}
+    .btnDesc{color:var(--mut); font-size:12.5px; margin-top:6px; line-height:1.5}
+    .dot{
+      width:10px; height:10px; border-radius:999px; background: var(--warn);
+      box-shadow: 0 0 0 4px rgba(255,209,102,.14);
+      flex:0 0 auto;
+    }
+    .dot.ok{ background: var(--ok); box-shadow: 0 0 0 4px rgba(46,229,157,.14); }
+    .dot.blue{ background: var(--cyan); box-shadow: 0 0 0 4px rgba(57,195,255,.14); }
+    .log{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      background: rgba(0,0,0,.30);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      padding:12px;
+      min-height:160px;
+      max-height:320px;
+      overflow:auto;
+      color:#EAF0FF;
+    }
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .chip{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      padding:8px 10px; border-radius:999px; font-size:12px; color:var(--mut);
+    }
+    footer{opacity:.85; color:var(--mut); font-size:12px; padding:0 16px 22px; max-width:980px; margin:0 auto;}
+    a{color:#CFE0FF}
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap hero">
+    <div class="title">
+      <h1>עוזר אוטומציה — שליטה בפרימיום</h1>
+      <div class="sub">האפליקציה הזו לא מריצה פקודות “בתוך הטלפון” בלי הרשאות מיוחדות — אבל היא נותנת לך כפתורים שמייצרים בדיוק את הדברים שעובדים לנו: Issue→Patch→Commit, בדיקות, ותיעוד ברור בעברית.</div>
+      <div class="pillrow">
+        <div class="pill"><b>RTL</b> מלא</div>
+        <div class="pill"><b>PWA</b> התקנה למסך בית</div>
+        <div class="pill"><b>GitHub</b> SSOT</div>
+      </div>
+    </div>
+    <div class="pill" id="clockPill">טוען זמן…</div>
+  </div>
+</header>
+
+<main class="grid">
+  <section class="card">
+    <div class="cardHead">
+      <h2>כפתורים חכמים</h2>
+      <span class="badge">מוכן לעבודה</span>
+    </div>
+    <div class="cardBody">
+      <p class="hint">כל כפתור יוצר עבורך טקסט/בלוק patch מוכן להדבקה ל־Issue. זה עובד “אמיתי” כי ה־Workflow שלך עושה את ה־commit בפועל.</p>
+
+      <div class="actions">
+        <button class="btn" data-action="makePatchUpdate">
+          <div class="btnTitle"><span>עדכן AUTOMATION_OK.txt (בדיקת עשן)</span><span class="dot ok"></span></div>
+          <div class="btnDesc">מייצר diff אמיתי שמחליף שורה אחת. מתאים לכל מצב שבו הקובץ כבר קיים.</div>
+        </button>
+
+        <button class="btn" data-action="makeIssueText">
+          <div class="btnTitle"><span>הכן גוף Issue מוכן לשליחה</span><span class="dot blue"></span></div>
+          <div class="btnDesc">יוצר כותרת + גוף עם ```patch כדי להדביק ב־GitHub (Template: Assistant Apply).</div>
+        </button>
+
+        <button class="btn" data-action="helpRules">
+          <div class="btnTitle"><span>כללים חשובים שלא שוברים את האוטומציה</span><span class="dot"></span></div>
+          <div class="btnDesc">מתי משתמשים Add File ומתי Update File, ואיך נמנעים מ־"patch does not apply".</div>
+        </button>
+      </div>
+
+      <div class="row">
+        <span class="chip">עובד עם label: <b>assistant:apply</b></span>
+        <span class="chip">דורש בלוק אחד: <b>```patch</b></span>
+      </div>
+    </div>
+  </section>
+
+  <aside class="card">
+    <div class="cardHead">
+      <h2>תיעוד / פלט</h2>
+      <span class="badge">העתקה מהירה</span>
+    </div>
+    <div class="cardBody">
+      <p class="hint">הכאן יופיע הטקסט המוכן. לחץ “הכן גוף Issue” ואז העתק.</p>
+      <div class="log" id="log"></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="copyBtn" style="text-align:center">העתק ללוח</button>
+      </div>
+      <p class="hint" style="margin-top:12px">
+        טיפ: אחרי שפותחים Issue ושולחים, נכנסים ל־Actions ורואים את ה־Run. אם נכשל—התגובה ב־Issue תסביר למה.
+      </p>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <div>קישור ריפו: <a href="https://github.com/yanivmizrachiy/my-assistant" target="_blank" rel="noreferrer">my-assistant</a> · המטרה: מינימום ידני, מקסימום אוטומציה אמיתית.</div>
+</footer>
+
+<script>
+  const logEl = document.getElementById('log');
+  const copyBtn = document.getElementById('copyBtn');
+  const clockPill = document.getElementById('clockPill');
+
+  function nowStamp(){
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}_${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+  }
+
+  function setLog(text){ logEl.textContent = text; }
+
+  function patchUpdateAutomationOk(){
+    const stamp = nowStamp();
+    const newLine = `OK - hardened automation update works @ ${stamp}`;
+    // IMPORTANT: this is a *unified diff* update for existing file
+    return [
+      "diff --git a/AUTOMATION_OK.txt b/AUTOMATION_OK.txt",
+      "--- a/AUTOMATION_OK.txt",
+      "+++ b/AUTOMATION_OK.txt",
+      "@@ -1 +1 @@",
+      "-OK - (previous line)",
+      `+${newLine}`,
+    ].join("\\n");
+  }
+
+  function issueBodyFromPatch(patch){
+    const title = `apply: automation update ${new Date().toISOString()}`;
+    const body = [
+      `כותרת מומלצת: ${title}`,
+      "",
+      "הדבק את זה בגוף ה-Issue (Template: Assistant Apply):",
+      "",
+      "```patch",
+      patch,
+      "```",
+      "",
+      "שים לב: אם ה-patch נכשל בגלל שהשורה הישנה לא תואמת, תייצר diff מחדש מהקובץ הנוכחי (ב-Termux עם gdiff)."
+    ].join("\\n");
+    return body;
+  }
+
+  function rulesText(){
+    return [
+      "כללים שמונעים תקלות:",
+      "",
+      "1) Add File רק אם הקובץ לא קיים. אם הוא קיים — תמיד Update File.",
+      "2) 'patch does not apply' קורה כששורת ה-'-OLD' לא תואמת בדיוק למה שיש בקובץ.",
+      "3) הדרך הכי בטוחה: ליצור diff אמיתי מתוך git (כמו gdiff ב-Termux) ואז להדביק ל-Issue.",
+      "4) אם אין שינוי אמיתי — ה-Workflow יעצור בלי commit (זה תקין).",
+      "",
+      "במילים פשוטות: לא מנחשים patches — מייצרים אותם ממצב אמיתי."
+    ].join("\\n");
+  }
+
+  document.querySelectorAll('[data-action]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const act = btn.getAttribute('data-action');
+      if(act === 'makePatchUpdate'){
+        const p = patchUpdateAutomationOk();
+        setLog("```patch\\n"+p+"\\n```");
+      }
+      if(act === 'makeIssueText'){
+        const raw = logEl.textContent.includes("diff --git") ? logEl.textContent : ("```patch\\n"+patchUpdateAutomationOk()+"\\n```");
+        const patch = raw.replace(/^```patch\\n|\\n```$/g,'');
+        setLog(issueBodyFromPatch(patch));
+      }
+      if(act === 'helpRules'){
+        setLog(rulesText());
+      }
+    });
+  });
+
+  copyBtn.addEventListener('click', async ()=>{
+    try{
+      await navigator.clipboard.writeText(logEl.textContent || "");
+      copyBtn.textContent = "הועתק ✅";
+      setTimeout(()=>copyBtn.textContent="העתק ללוח", 1200);
+    }catch(e){
+      copyBtn.textContent = "לא הצלחתי להעתיק";
+      setTimeout(()=>copyBtn.textContent="העתק ללוח", 1400);
+    }
+  });
+
+  function tick(){
+    const d = new Date();
+    clockPill.textContent = "UTC " + d.toISOString().replace('T',' ').replace('Z','');
+  }
+  tick(); setInterval(tick, 1000);
+
+  // PWA registration
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=> navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  }
+
+  setLog("לחץ על כפתור כדי לייצר תוכן מוכן.\\n\\nמומלץ: עדכן AUTOMATION_OK.txt → הכן גוף Issue → הדבק ב-GitHub.");
+</script>
+</body>
+</html>
