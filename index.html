@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#0B5FFF"/><meta name="description" content="אפליקציה לנייד להפעלת אוטומציות GitHub/Termux עם כפתורים והסברים בעברית."/>
 <link rel="manifest" href="./manifest.webmanifest"/><link rel="icon" href="./assets/icon-192.png"/>
 <style>
-:root{--bg:#050B1A;--txt:#EAF0FF;--mut:#B9C6FF;--blue:#0B5FFF;--cyan:#39C3FF;--ok:#2EE59D;--warn:#FFD166}
+:root{--txt:#EAF0FF;--mut:#B9C6FF;--blue:#0B5FFF;--cyan:#39C3FF;--ok:#2EE59D;--warn:#FFD166}
 *{box-sizing:border-box} body{margin:0;color:var(--txt);font-family:system-ui,-apple-system,"Heebo","Assistant",Arial;
 background:radial-gradient(900px 500px at 20% 10%, rgba(11,95,255,.35), transparent 60%),
 radial-gradient(900px 500px at 80% 0%, rgba(57,195,255,.22), transparent 55%),
@@ -39,7 +39,7 @@ a{color:#CFE0FF}
 </style></head><body>
 <header><div class="wrap">
 <h1>עוזר אוטומציה — שליטה בפרימיום</h1>
-<div class="sub">כפתורים שמייצרים Patch מוכן ל-Issue כדי שה-Workflow שלך יעשה Commit אמיתי. (לא מריץ פקודות מקומיות בלי הרשאות, אבל מפעיל אוטומציות GitHub אמיתיות.)</div>
+<div class="sub">כפתורים שמייצרים Patch מוכן ל-Issue כדי שה-Workflow שלך יעשה Commit אמיתי.</div>
 <div style="margin-top:10px">
 <span class="pill">RTL מלא</span><span class="pill">PWA</span><span class="pill">GitHub SSOT</span>
 <span class="pill" id="clockPill">טוען זמן…</span>
@@ -48,13 +48,13 @@ a{color:#CFE0FF}
 <section class="card">
 <div class="cardHead"><h2>כפתורים חכמים</h2><span class="badge">מוכן לעבודה</span></div>
 <div class="cardBody">
-<p class="hint">לחץ על כפתור → קבל טקסט מוכן להדבקה ב-Issue (Template: Assistant Apply). זה “אמיתי” כי ה-Workflow מבצע commit בפועל.</p>
+<p class="hint">לחץ → תקבל טקסט מוכן להדבקה ב-Issue (Template: Assistant Apply).</p>
 <button class="btn" data-act="patch"><div class="btnTitle"><span>ייצר Patch לעדכון AUTOMATION_OK.txt</span><span class="dot ok"></span></div>
-<div class="btnDesc">מייצר diff סטנדרטי. את השורה הישנה מחליפים ידנית לפי מה שקיים כרגע (או משתמשים ב-gdiff ב-Termux).</div></button>
+<div class="btnDesc">הכי בטוח לייצר diff אמיתי ב-Termux עם gdiff.</div></button>
 <button class="btn" data-act="issue"><div class="btnTitle"><span>ייצר גוף Issue מוכן</span><span class="dot blue"></span></div>
-<div class="btnDesc">נותן לך כותרת + בלוק ```patch להדבקה ב-GitHub.</div></button>
-<button class="btn" data-act="rules"><div class="btnTitle"><span>כללי בטיחות נגד “patch does not apply”</span><span class="dot"></span></div>
-<div class="btnDesc">מתי Update / Add, למה זה נכשל, ואיך לייצר patch אמיתי בלי לנחש.</div></button>
+<div class="btnDesc">כותרת + בלוק ```patch להדבקה.</div></button>
+<button class="btn" data-act="rules"><div class="btnTitle"><span>כללים נגד “patch does not apply”</span><span class="dot"></span></div>
+<div class="btnDesc">בלי ניחושים: diff אמיתי ואז הדבקה.</div></button>
 </div></section>
 <aside class="card">
 <div class="cardHead"><h2>תיעוד / פלט</h2><span class="badge">העתקה מהירה</span></div>
@@ -62,10 +62,9 @@ a{color:#CFE0FF}
 <p class="hint">כאן יופיע הטקסט להעתקה.</p>
 <div class="log" id="log"></div>
 <button class="btn" id="copy" style="text-align:center;margin-top:12px">העתק ללוח</button>
-<p class="hint" style="margin-top:12px">ריפו: <a target="_blank" rel="noreferrer" href="https://github.com/yanivmizrachiy/my-assistant">my-assistant</a></p>
 </div></aside>
 </main>
-<footer><div>התקן כ-PWA: תפריט דפדפן → “הוסף למסך הבית”.</div></footer>
+<footer><div>התקנה כ-PWA: תפריט דפדפן → “הוסף למסך הבית”.</div></footer>
 <script>
 const logEl=document.getElementById('log'); const copyBtn=document.getElementById('copy'); const clockPill=document.getElementById('clockPill');
 function nowStamp(){const d=new Date();const p=n=>String(n).padStart(2,'0');return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())}_${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}Z`;}
@@ -73,27 +72,17 @@ function setLog(t){logEl.textContent=t;}
 function patch(){const stamp=nowStamp();const nl=`OK - hardened automation update works @ ${stamp}`;return [
 "diff --git a/AUTOMATION_OK.txt b/AUTOMATION_OK.txt",
 "--- a/AUTOMATION_OK.txt","+++ b/AUTOMATION_OK.txt","@@ -1 +1 @@",
-"-OK - (שים כאן את השורה הנוכחית מהקובץ)",
-`+${nl}`].join("\\n");}
-function issueBody(p){return [
-`כותרת מומלצת: apply: smoke ${new Date().toISOString()}`,"",
-"הדבק ב-Issue (Template: Assistant Apply):","",
-"```patch",p,"```","",
-"טיפ: הכי בטוח לייצר diff אמיתי ב-Termux עם gdiff (כמו שכבר בנינו)."].join("\\n");}
-function rules(){return [
-"כללים שמונעים תקלות:","",
-"• אם הקובץ קיים → תמיד Update (לא Add).",
-"• 'patch does not apply' = השורה הישנה לא תואמת בדיוק.",
-"• אל תנחש: תייצר diff אמיתי מתוך git (gdiff), ואז תדביק ל-Issue.",
-"• אם אין שינוי אמיתי — לא יווצר commit (זה תקין)."].join("\\n");}
+"-OK - (שים כאן את השורה הנוכחית מהקובץ)",`+${nl}`].join("\n");}
+function issueBody(p){return [`כותרת: apply: smoke ${new Date().toISOString()}`,"","```patch",p,"```"].join("\n");}
+function rules(){return ["• אם הקובץ קיים → Update","• אין ניחושים: diff אמיתי (gdiff)","• אחרת patch does not apply"].join("\n");}
 document.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{const a=b.getAttribute('data-act');
-if(a==='patch') setLog("```patch\\n"+patch()+"\\n```");
-if(a==='issue'){const raw=logEl.textContent.includes("diff --git")?logEl.textContent:"```patch\\n"+patch()+"\\n```"; setLog(issueBody(raw.replace(/^```patch\\n|\\n```$/g,'')));}
+if(a==='patch') setLog("```patch\n"+patch()+"\n```");
+if(a==='issue'){const raw=logEl.textContent.includes("diff --git")?logEl.textContent:"```patch\n"+patch()+"\n```"; setLog(issueBody(raw.replace(/^```patch\n|\n```$/g,'')));}
 if(a==='rules') setLog(rules());
 });
 copyBtn.onclick=async()=>{try{await navigator.clipboard.writeText(logEl.textContent||""); copyBtn.textContent="הועתק ✅"; setTimeout(()=>copyBtn.textContent="העתק ללוח",1200);}catch(e){copyBtn.textContent="לא הצלחתי"; setTimeout(()=>copyBtn.textContent="העתק ללוח",1400);}};
 function tick(){const d=new Date(); clockPill.textContent="UTC "+d.toISOString().replace('T',' ').replace('Z','');}
 tick(); setInterval(tick,1000);
 if('serviceWorker'in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
-setLog("לחץ על כפתור כדי לייצר תוכן מוכן.\\n\\nמומלץ: Patch → גוף Issue → הדבק ב-GitHub.");
+setLog("Patch → Issue → Commit (דרך ה-Workflow).");
 </script></body></html>
